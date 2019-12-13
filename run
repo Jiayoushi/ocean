@@ -1,0 +1,9 @@
+set -e
+
+make clean
+
+make
+
+clear && clear
+
+make qemu-nox

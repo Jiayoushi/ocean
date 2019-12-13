@@ -1,0 +1,74 @@
+Compile: make / make all
+Run tests: make clean && make TEST=1
+Run in qemu: make qemu / make qemu-nox
+Debug with gdb: make qemu-gdb / make qemu-nox-gdb
+                (in another terminal) gdb
+
+List here the following info:
+1. who you have worked with
+  None
+2. whether you coded this assignment together, and if not, who worked on which part
+3. brief description of what you have implemented
+ 
+
+Project 11: Advanced Syncrhonization: User-level Mutex
+   
+Table
+ (1) Overview
+ (2) Implementation
+ (3) Project Structure
+ (4) Tests
+ (5) References
+
+(1) Overview
+    I implemented the futex syscall with option FUTEX_WAIT, FUTEX_WAKE and FUTEX_CMP_REQUEUE. It supports syncrhonization for
+    threads within a process, the inter-process communication between two different processes are not implemented. 
+    To demonstrat the practicality, I implemented semaphore, mutex, condition variable, barrier, read-write lock, FIFO 
+    bounded queue and test them in user space.
+    
+(2) Implementation
+    futex_q: a waiting task is assigned a futex_q.
+    futex_queue: a futex_queue is a linked list of futex_q. A futex_queue can have futex_q with different futex waiting on it.
+    futex_queue_pool: there is only a fixed number of futex_queues. 
+    hash: Each futex is hashed by (virtual address % futex_queue_pool's capacity).
+    FUTEX_WAIT: acquire the futex_queue's spinlock to ensure atomicity. Check user space val1 after acquire the lock.
+    FUTEX_WAKE: acquire lock and iterate through a futex_queue's all entries to check wakable futex_q.
+    FUTEX_CMP_REQUEUE: acquire the two queues at the beggining, after iterate thorugh the first queue, move the remaining waiting threads
+                       waiting on the same futex from queue#1 to queue#2, change the futex_q's futex value as well.
+
+    The implementation for mutex is largely based on mutex3 of 'futexes are tricky' and condition variable 
+    mostly from "Condition variable with futex" by Rémi Denis-Courmont.
+
+(3) Project Structure
+    Futex
+      kern/lib/futex.c 
+      kern/lib/futex.h
+    Test file
+      user/thread/futex_test.c
+    Syncrhonization Objects
+      user/thread/mutex.h
+      user/thread/barrier.h
+      user/thread/...
+
+(4) Tests
+    The kernel is based on the lab3 solution. One main test process is started on CPU 1, and this process will create 3 threads that
+    share the same memroy space with this process. So a total of 4 threads (2 on CPU1, 2 on CPU 2) are participating in tests.
+    A barrier object is used make different test suite a different batch. Only relative correctness is tested, performance is not tested.
+  
+    Barrier Test: check in and out several times. The organized test information printed on the console serves as another test for barrier.
+    Concurrency Test: 4 threads adding a global variable at the same time, it is expected to result in a total less than expected. Which serves
+                      as a proof 4 threads are running concurrently.
+    CMP_REQUEUE Test: the test for FUTEX_CMP_REQUEUE is very basic: one thread using CMP_REQUEUE to wake up other 3 threads one at 
+                      a time and requeueing two or more times until all of them are woken. 
+                      I did not use it when implementing other sync objects.
+    Spinlock Test: 4 threads adding to the same global variable. Check the final sum against the expected sum.
+    Mutex Test: 4 threads adding to the same global variable. Check the final sum against the expected sum.
+    Semaphore Test: 4 threads adding to the same global variable. Check the final sum against the expected sum.
+    Bounded Buffer Test: one thread is producing, other threads collecting items. Check the final sum against the expected sum.
+    RWLock Test: 2 writers and 2 readers keep accessing the same global variable. Check the final sum against the expected sum.
+
+(6) References
+    "Futexes Are Tricky", Ulrich Drepper, http://dept-info.labri.fr/~denis/Enseignement/2008-IR/Articles/01-futex.pdf
+    "Condition variable with futex", Rémi Denis‑Courmont, https://www.remlab.net/op/futex-condvar.shtml
+
+4. and anything else you would like us to know
