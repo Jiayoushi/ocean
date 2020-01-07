@@ -1,15 +1,7 @@
 Compile: make / make all
-Run tests: make clean && make TEST=1
 Run in qemu: make qemu / make qemu-nox
 Debug with gdb: make qemu-gdb / make qemu-nox-gdb
                 (in another terminal) gdb
-
-List here the following info:
-1. who you have worked with
-  None
-2. whether you coded this assignment together, and if not, who worked on which part
-3. brief description of what you have implemented
- 
 
 Project 11: Advanced Syncrhonization: User-level Mutex
    
@@ -70,5 +62,3 @@ Table
 (6) References
     "Futexes Are Tricky", Ulrich Drepper, http://dept-info.labri.fr/~denis/Enseignement/2008-IR/Articles/01-futex.pdf
     "Condition variable with futex", Rémi Denis‑Courmont, https://www.remlab.net/op/futex-condvar.shtml
-
-4. and anything else you would like us to know
